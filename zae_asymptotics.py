@@ -2,7 +2,8 @@
 Zeilen (1, x), μ = exp(β0 + β1 x), Varianzfunktion V). Zwei Rechenwege für die Erwartungswerte: Gauss-Hermite (80 Knoten) und `scipy.integrate.quad`.
 
 Poisson-Intervall: die naive Varianz ist A⁻¹ (richtig nur für V = μ). Quasi-Poisson: das Skalar φ = E[V/μ] mal A⁻¹. Die z-Intervalle haben die Überdeckung
-2 Φ(1,96 · SE_modell / SD_wahr) − 1, mit SD_wahr = √(A⁻¹BA⁻¹)₁₁ (der Schätzer β̂₁ ist im Grenzwert normalverteilt um β1, wenn das Mittelwertmodell stimmt)."""
+2 Φ(1,96 · SE_modell / SD_wahr) − 1, mit SD_wahr = √(A⁻¹BA⁻¹)₁₁ (wenn das Mittelwertmodell stimmt, ist √n (β̂₁ − β1) im Grenzwert normalverteilt mit Mittel 0 und der Varianz (A⁻¹BA⁻¹)₁₁;
+B enthält die wahre Varianzfunktion V; SE_modell steht auf derselben Skala, also ohne den Faktor 1/n)."""
 
 import math
 

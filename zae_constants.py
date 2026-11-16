@@ -35,7 +35,7 @@ SEED_MAX, DEFAULT_SEED = 999999, 2026
 SEED_GRID, SEED_MAIN_NB2, SEED_MAIN_NB1 = 8100, 8200, 8300
 SEED_VEHICLE, SEED_LIMIT, SEED_LIMIT2, SEED_NULL, SEED_MISSPEC, SEED_MISSPEC_LIMIT = 8400, 8500, 8550, 8600, 8700, 8800
 
-# --- Handbeispiel: acht Standtage in zwei Gruppen (ohne / mit Zollhalt) -------------------------------------------------------------------------------------
+# --- Handbeispiel: acht Zählwerte in zwei Gruppen (ohne / mit Zollhalt) -------------------------------------------------------------------------------------
 HAND_DEFAULT = (0, 0, 1, 5, 1, 3, 6, 10)
 HAND_MAX = 99
 EXPO_DEFAULT = (21, 3, 20, 5)                # Kunde 1: 21 Standtage bei 3 Containern, Kunde 2: 20 bei 5
@@ -60,7 +60,7 @@ def _preset(**kw):
 
 
 PRESETS = {
-    "Von Hand (8 Standtage)": _preset(),
+    "Von Hand (8 Zählwerte)": _preset(),
     "Keine Überstreuung (α = 0)": _preset(alpha=0.0),
     "Starke Überstreuung (α = 1)": _preset(alpha=1.0),
     "Standtage der Container": _preset(spalte="Gewicht (Rauschmerkmal)"),
@@ -68,7 +68,7 @@ PRESETS = {
     "Falsches Mittelwertmodell": _preset(c=0.2),
 }
 PRESET_HELP = {
-    "Von Hand (8 Standtage)": "Voreinstellung: acht erfundene Standtage in zwei Gruppen (ohne und mit Zollhalt), von Hand in Brüchen nachrechenbar. Die übrigen Experimente stehen auf α = 0,5 und n = 200.",
+    "Von Hand (8 Zählwerte)": "Voreinstellung: acht erfundene Zählwerte (keine echten Standtage) in zwei Gruppen (ohne und mit Zollhalt), von Hand in Brüchen nachrechenbar. Die übrigen Experimente stehen auf α = 0,5 und n = 200.",
     "Keine Überstreuung (α = 0)": "Die Zählwerte sind genau Poisson-verteilt: Varianz gleich Mittel. Alle Verfahren sollten die Intervalle halten; die Demo meldet hier keinen Effekt.",
     "Starke Überstreuung (α = 1)": "Die Varianz wächst quadratisch mit dem Mittel (μ + μ²). Das Poisson-Intervall unterdeckt am stärksten.",
     "Standtage der Container": "Das Container-Vehikel mit n = 3000 Containern, Auswahl: das Rauschmerkmal Gewicht (wahre Wirkung null). Gemessen wird, wie oft ein Merkmal ohne Wirkung anschlägt.",

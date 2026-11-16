@@ -71,7 +71,7 @@ def verdict_hand(res: dict) -> tuple[str, str]:
     text = "; ".join(parts) + ". Gilt für diese acht Werte, nichts über Häufigkeiten."
     kind = "warning" if len(set(flags.values())) > 1 else "info"
     if kind == "warning":
-        text = f"Gleicher Punktschätzer (Faktor {de(res['faktor'], 2)} bei den Standtagen), aber verschiedene Schlüsse: " + text
+        text = f"Gleicher Punktschätzer (Faktor {de(res['faktor'], 2)} bei den Zählwerten), aber verschiedene Schlüsse: " + text
     return kind, text
 
 
@@ -142,14 +142,14 @@ def verdict_cover(cell: dict, limit: dict, welt: str, alpha: float, n: int) -> t
                 satz += f" Ausnahme in derselben Welt: {_methods_list(ausnahme)} unter 93 %."
             return "success", kopf + satz + klassen
         return "info", kopf + klassen
-    grenz = (f" Grenzwert für n → ∞ aus der Sandwich-Formel (kein Zufall): Poisson {pct(limit['cov_poisson'])}, Quasi-Poisson {pct(limit['cov_quasi'])}.")
+    grenz = (f" Grenzwert für n → ∞ aus der Sandwich-Formel (kein Zufall): Poisson {pct(limit['cov_poisson'])}, Quasi-Poisson (z) {pct(limit['cov_quasi'])}.")
     if welt == "NB2":
         deut = " Quasi-Poisson hält also schon im Grenzwert nicht 95 %: ein einziges φ passt nicht zu einer Varianz, die quadratisch im Mittel wächst (Deutung aus der Formel, nicht eigens gemessen)."
     else:
         deut = " In dieser Welt ist das Skalar φ die richtige Varianzfunktion: Quasi-Poisson hält im Grenzwert 95,0 %, das Poisson-Intervall nicht."
     ausnahme = ""
     if n <= 30 and cov["HC0"] < cov["Quasi z"]:
-        ausnahme = f" Ausnahme im selben Satz: bei n = {n} liegt das Sandwich HC0 mit {pct(cov['HC0'])} unter Quasi-Poisson, die Hebelkorrektur (HC3-Analogon) hebt es auf {pct(cov['HC3a'])}."
+        ausnahme = f" Ausnahme im selben Satz: bei n = {n} liegt das Sandwich HC0 mit {pct(cov['HC0'])} unter Quasi-Poisson (z), die Hebelkorrektur (HC3-Analogon) hebt es auf {pct(cov['HC3a'])}."
     kind = "warning" if cov["Poisson"] < KNAPP else "info"
     return kind, kopf + grenz + deut + ausnahme + klassen
 
@@ -158,7 +158,7 @@ def verdict_live(cell: dict, ref: dict) -> tuple[str, str]:
     cov, rc = cell["coverage"], ref["coverage"]
     se = 100 * cell["se_mc"]
     return "info", (f"Live-Probe mit {cell['R']} Wiederholungen (Monte-Carlo-Standardfehler {de(se, 1)} Prozentpunkte je Zahl): Poisson {pct(cov['Poisson'])}, Quasi-Poisson (z) {pct(cov['Quasi z'])}, "
-                    f"HC0 {pct(cov['HC0'])}, NB2 {pct(cov['NB2'])}. Vorgerechnet ({ref['R']} Wiederholungen): Poisson {pct(rc['Poisson'])}, Quasi {pct(rc['Quasi z'])}, HC0 {pct(rc['HC0'])}, NB2 {pct(rc['NB2'])}. "
+                    f"HC0 {pct(cov['HC0'])}, NB2 {pct(cov['NB2'])}. Vorgerechnet ({ref['R']} Wiederholungen): Poisson {pct(rc['Poisson'])}, Quasi-Poisson (z) {pct(rc['Quasi z'])}, HC0 {pct(rc['HC0'])}, NB2 {pct(rc['NB2'])}. "
                     f"Die Live-Probe hat einen anderen Zufalls-Seed und weniger Wiederholungen: Abweichungen von ein bis zwei Standardfehlern sind zu erwarten.")
 
 
@@ -195,16 +195,16 @@ def verdict_vehicle(frozen: dict, vn: int, kunden: bool, spalte: str) -> tuple[s
     kopf = f"n = {vn} Container, {cell['R']} Wiederholungen (vorgerechnet), {kund}, Pearson-φ̂ im Mittel {de(cell['phi_mean'], 2)}: "
     if spalte.startswith("Gewicht"):
         a = {m: sp[m]["fehlalarm"] for m in ("Poisson", "Quasi z", "HC0", "NB2")}
-        text = (f"das Rauschmerkmal Gewicht (wahre Wirkung null) schlägt bei Poisson in {pct(a['Poisson'])}, Quasi-Poisson {pct(a['Quasi z'])}, NB2 {pct(a['NB2'])} und Sandwich HC0 {pct(a['HC0'])} "
+        text = (f"das Rauschmerkmal Gewicht (wahre Wirkung null) schlägt bei Poisson in {pct(a['Poisson'])}, Quasi-Poisson (z) {pct(a['Quasi z'])}, NB2 {pct(a['NB2'])} und Sandwich HC0 {pct(a['HC0'])} "
                 f"der Wiederholungen an (nominal 5 %; Monte-Carlo-Standardfehler {de(100 * cell['se_mc'] * math.sqrt(5 / 95), 1)} Prozentpunkte).")
         kind = "warning" if a["Poisson"] > 0.10 else "info"
     else:
         c = {m: sp[m]["coverage"] for m in ("Poisson", "Quasi z", "HC0", "NB2")}
-        text = (f"{spalte}: Poisson {pct(c['Poisson'])}, Quasi-Poisson {pct(c['Quasi z'])}, NB2 {pct(c['NB2'])}, Sandwich HC0 {pct(c['HC0'])} Überdeckung (nominal 95 %; Monte-Carlo-Standardfehler "
+        text = (f"{spalte}: Poisson {pct(c['Poisson'])}, Quasi-Poisson (z) {pct(c['Quasi z'])}, NB2 {pct(c['NB2'])}, Sandwich HC0 {pct(c['HC0'])} Überdeckung (nominal 95 %; Monte-Carlo-Standardfehler "
                 f"{de(100 * cell['se_mc'], 1)} Prozentpunkte).")
         kind = "warning" if c["Poisson"] < KNAPP else "info"
     r = {m: sp[m]["ratio"] for m in ("Poisson", "Quasi z", "HC0", "NB2")}
-    text += (f" Mittlerer Standardfehler geteilt durch die wahre Streuung der Schätzung: Poisson {de(r['Poisson'], 2)}, Quasi {de(r['Quasi z'], 2)}, HC0 {de(r['HC0'], 2)}, NB2 {de(r['NB2'], 2)}. "
+    text += (f" Mittlerer Standardfehler geteilt durch die wahre Streuung der Schätzung: Poisson {de(r['Poisson'], 2)}, Quasi (z) {de(r['Quasi z'], 2)}, HC0 {de(r['HC0'], 2)}, NB2 {de(r['NB2'], 2)}. "
              f"Ziel ist der Grenzwert des jeweiligen Schätzers (n = {de(lim['n'] / 1e6, 0)} Million), nicht ein wahrer Koeffizient: das Mittelwertmodell der Standtage ist nicht exakt log-linear.")
     return kind, kopf + text
 
@@ -215,8 +215,9 @@ def verdict_dispersion(frozen: dict) -> tuple[str, str]:
     pa = lim["phi_je_art"]
     unter = [C.ART_LABELS[a] for a in range(4) if pa[a] < 1]
     return "info", (f"Standtage im Container-Vehikel (eine Historie aus {de(lim['n'] / 1e6, 0)} Million Containern): Mittel {de(lim['mean'], 2)}, Varianz {de(lim['var'], 2)}, Varianz geteilt durch Mittel {de(lim['var'] / lim['mean'], 2)} "
-                    f"(Poisson hätte 1). Pearson-φ̂ {de(lim['phi'], 2)}; je Containerart " + ", ".join(f"{C.ART_LABELS[a]} {de(pa[a], 2)}" for a in range(4))
-                    + f": ein einziges φ passt nicht, in {len(unter)} von 4 Arten ({', '.join(unter) or 'keiner'}) ist die Streuung kleiner als Poisson. Mit 11 Kundenspalten im Modell sinkt φ̂ auf {de(lk['phi'], 2)}.")
+                    f"(roh über alle Container zusammen; das ist nicht die Überdispersion gegenüber dem Modell: schon ein exakt passendes Poisson-Modell zeigt roh mehr als 1, weil die erwarteten Werte der Container verschieden sind). "
+                    f"Gegenüber dem angepassten Modell misst die Streuung das Pearson-φ̂ {de(lim['phi'], 2)} (bei Poisson 1); je Containerart " + ", ".join(f"{C.ART_LABELS[a]} {de(pa[a], 2)}" for a in range(4))
+                    + f": ein einziges φ passt nicht, in {len(unter)} von 4 Arten ({', '.join(unter) or 'keiner'}) ist die Streuung gegen das angepasste Mittel kleiner als Poisson. Mit 11 Kundenspalten im Modell sinkt φ̂ auf {de(lk['phi'], 2)}.")
 
 
 # --- Experiment 4: Quasi-Poisson ist nicht NB2 ---------------------------------------------------------------------------------------------------
@@ -234,11 +235,11 @@ def verdict_weights(alpha: float) -> tuple[str, str]:
 
 
 def _vorn(d: float, se: float) -> str:
-    """Wer liegt vorn? Nur ein Abstand über zwei Monte-Carlo-Standardfehlern zählt (d = NB2 minus Quasi-Poisson, in Anteilen)."""
+    """Wer liegt vorn? Nur ein Abstand über zwei Monte-Carlo-Standardfehlern zählt (d = NB2 minus Quasi-Poisson (z), in Anteilen)."""
     if d > 2 * se:
         return "NB2 liegt vorn"
     if d < -2 * se:
-        return "Quasi-Poisson liegt vorn"
+        return "Quasi-Poisson (z) liegt vorn"
     return "kein Abstand über zwei Standardfehlern"
 
 
@@ -250,10 +251,10 @@ def verdict_two_worlds(c_nb2: dict | None, c_nb1: dict | None, alpha: float, n: 
     se2, se1 = c_nb2["se_mc"], c_nb1["se_mc"]
     v2, v1 = _vorn(n2 - q2, se2), _vorn(n1 - q1, se1)
     fazit = ""
-    if v2 == "NB2 liegt vorn" and v1 == "Quasi-Poisson liegt vorn":
+    if v2 == "NB2 liegt vorn" and v1 == "Quasi-Poisson (z) liegt vorn":
         fazit = " Kein Verfahren ist in beiden Welten das beste."
-    return "info", (f"α = {de(alpha, 2)}, n = {n}. NB2-Welt ({c_nb2['R']} Wiederholungen, Monte-Carlo-Standardfehler {de(100 * se2, 1)} Prozentpunkte): NB2 {pct(n2)} gegen Quasi-Poisson {pct(q2)}, {v2}. "
-                    f"NB1-Welt ({c_nb1['R']} Wiederholungen, {de(100 * se1, 1)} Prozentpunkte): NB2 {pct(n1)} gegen Quasi-Poisson {pct(q1)}, {v1}.{fazit}")
+    return "info", (f"α = {de(alpha, 2)}, n = {n}. NB2-Welt ({c_nb2['R']} Wiederholungen, Monte-Carlo-Standardfehler {de(100 * se2, 1)} Prozentpunkte): NB2 {pct(n2)} gegen Quasi-Poisson (z) {pct(q2)}, {v2}. "
+                    f"NB1-Welt ({c_nb1['R']} Wiederholungen, {de(100 * se1, 1)} Prozentpunkte): NB2 {pct(n1)} gegen Quasi-Poisson (z) {pct(q1)}, {v1}.{fazit}")
 
 
 def missspec_entry(frozen: dict, c: float) -> tuple[dict, dict]:

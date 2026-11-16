@@ -1,4 +1,4 @@
-"""Von Hand in Brüchen: acht Standtage in zwei Gruppen, Gewichte, Exposition, Gamma-Mischung. Bruch gleich Bruch, wo es Brüche gibt; sonst Band."""
+"""Von Hand in Brüchen: acht Zählwerte in zwei Gruppen, Gewichte, Exposition, Gamma-Mischung. Bruch gleich Bruch, wo es Brüche gibt; sonst Band."""
 
 import math
 from fractions import Fraction as Fr

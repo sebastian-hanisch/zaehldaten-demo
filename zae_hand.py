@@ -1,7 +1,7 @@
-"""Von Hand: acht Standtage in zwei Gruppen (ohne und mit Zollhalt), die Standardfehler als exakte Brüche (`fractions`), dazu die Gewichte der Verfahren, die Exposition und die
+"""Von Hand: acht Zählwerte in zwei Gruppen (ohne und mit Zollhalt), die Standardfehler als exakte Brüche (`fractions`), dazu die Gewichte der Verfahren, die Exposition und die
 Gamma-Mischung. Bei zwei Gruppen löst das Gruppenmittel die Score-Gleichung beider Gruppen (Σ (y − μ) = 0 je Gruppe); alles Weitere folgt in Brüchen.
 
-Die Acht Werte sind **erfunden** (nicht aus dem Generator gezogen), weil nur so alles in Brüchen nachrechenbar bleibt."""
+Die acht Werte sind **erfunden** (nicht aus dem Generator gezogen, also keine Standtage: sie enthalten Nullen, die echte Standtage nicht haben), weil nur so alles in Brüchen nachrechenbar bleibt."""
 
 import math
 from fractions import Fraction

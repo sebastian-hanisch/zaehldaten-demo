@@ -1,4 +1,4 @@
-"""Einheiten des Kerns an der Mini-Instanz von Hand (acht Standtage): IRLS, Pearson-Dispersion, Sandwich, NB2, Exposition."""
+"""Einheiten des Kerns an der Mini-Instanz von Hand (acht Zählwerte): IRLS, Pearson-Dispersion, Sandwich, NB2, Exposition."""
 
 import math
 

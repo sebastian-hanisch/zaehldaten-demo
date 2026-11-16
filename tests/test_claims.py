@@ -55,11 +55,13 @@ def test_b2_limit_equals_formula_and_simulation_is_close():
         assert within(c["coverage"]["Poisson"], o["cov_poisson"], c, extra=0.015)
 
 
-def test_b2_poisson_is_below_90_percent_in_all_18_cells_with_overdispersion():
+def test_b1_poisson_is_below_90_percent_in_all_18_cells_with_overdispersion():
+    """README B1: in der Simulation (NB2- und NB1-Welt, n = 30, 100, 200) liegt das Poisson-Intervall in allen 18 Zellen mit α > 0 unter 90 %; Quasi-Poisson (z) im Grenzwert nicht (B2)."""
     cs = [c for c in CELLS if c["alpha"] > 0]
     assert len(cs) == 18
     assert all(c["coverage"]["Poisson"] < 0.90 for c in cs)
     assert min(c["coverage"]["Poisson"] for c in cs) > 0.60 and max(c["coverage"]["Poisson"] for c in cs) < 0.88     # 63,6 bis 86,6 %
+    assert all(AS.limit_coverage("NB2", a)["cov_quasi"] > 0.90 for a in (0.25, 0.5, 1.0))                              # B2: Quasi-Poisson (z) im selben Grenzwert über 90 %
 
 
 def test_b2_without_overdispersion_all_methods_hold_93_percent_at_n_200():
@@ -78,6 +80,8 @@ def test_b3_quasi_poisson_does_not_hold_95_in_the_limit_for_nb2_variance():
     nb2_cells = [c for c in CELLS if c["welt"] == "NB2" and c["alpha"] > 0]
     assert len(nb2_cells) == 9
     assert all(0.915 <= c["coverage"]["Quasi z"] <= 0.935 for c in nb2_cells)          # 91,9 bis 93,2 %, in keiner Zelle 95 %
+    assert all(0.920 <= c["coverage"]["Quasi t"] <= 0.941 for c in nb2_cells)          # Quasi t: 92,3 bis 94,0 %
+    assert all(abs(c["coverage"]["Quasi t"] - 0.95) > 2 * c["se_mc"] for c in nb2_cells)   # auch Quasi t in keiner Zelle innerhalb von zwei Standardfehlern von 95 %
 
 
 def test_b3_in_the_nb1_world_quasi_poisson_is_exact_in_the_limit_and_close_in_simulation():
@@ -86,6 +90,8 @@ def test_b3_in_the_nb1_world_quasi_poisson_is_exact_in_the_limit_and_close_in_si
     n200 = [cell("NB1", a, 200) for a in (0.25, 0.5, 1.0)]
     assert [round(100 * c["coverage"]["Quasi z"], 1) for c in n200] == pytest.approx([94.8, 94.8, 93.7], abs=1.5)
     assert all(c["coverage"]["Quasi z"] > 0.93 for c in n200)
+    n30 = [c["coverage"]["Quasi z"] for c in CELLS if c["welt"] == "NB1" and c["n"] == 30]
+    assert len(n30) == 3 and 0.92 <= min(n30) and max(n30) <= 0.94                                      # README B3: bei n = 30 zwischen 92,5 und 93,9 %
 
 
 def test_b3_count_of_cells_within_two_standard_errors_of_95_percent():
@@ -226,6 +232,74 @@ def test_b7_dispersion_of_standtage():
     pa = lim["phi_je_art"]
     assert pa[0] == pytest.approx(3.05, abs=0.3) and pa[1] == pytest.approx(0.43, abs=0.05) and pa[2] == pytest.approx(0.44, abs=0.05) and pa[3] == pytest.approx(18.0, abs=1.5)
     assert sum(p < 1 for p in pa) == 2                                      # in zwei von vier Arten ist die Streuung kleiner als Poisson
+
+
+@pytest.fixture(scope="module")
+def vehicle_history_1e6():
+    """Die Historie der README (10⁶ Container, Zufalls-Seed 8500) und die Poisson-Anpassung ohne Kunden."""
+    import zae_generator as G
+    import zae_models as MOD
+    X, d = G.make_history(1_000_000, C.SEED_LIMIT)
+    y = G.standtage(d)
+    inf = MOD.poisson_inference(G.design(X, False), y)
+    return X, y, inf
+
+
+def test_b7_raw_variance_ratio_is_not_the_overdispersion_against_the_model(vehicle_history_1e6):
+    """README B11: die rohe Varianz/Mittel 6,78 enthält die Streuung der erwarteten Werte; ein exakt passendes Poisson-Modell mit denselben angepassten Mitteln hätte roh
+    1 + Var(μ̂)/Mittel = 2,56. Die Überdispersion gegenüber dem Modell ist das Pearson-φ̂ 3,12."""
+    X, y, inf = vehicle_history_1e6
+    mu = inf.fit.mu
+    assert y.var() / y.mean() == pytest.approx(6.78, abs=0.15)
+    assert mu.var() == pytest.approx(9.58, abs=0.15) and mu.mean() == pytest.approx(y.mean(), rel=1e-6)           # Poisson mit Achsenabschnitt: Mittel der μ̂ gleich Mittel der y
+    assert 1 + mu.var() / mu.mean() == pytest.approx(2.56, abs=0.05)
+    assert inf.phi == pytest.approx(3.12, abs=0.1)
+
+
+def test_b7_raw_variance_ratio_per_kind_does_not_show_the_underdispersion(vehicle_history_1e6):
+    """README B11: rohe Varianz/Mittel je Art Import 4,21, Export 1,34, Umschlag 1,00, Leer 18,43; das Pearson-φ̂ gegen das angepasste Mittel gibt dort 0,43 und 0,44 (Export, Umschlag)."""
+    X, y, inf = vehicle_history_1e6
+    art = X[:, 0].astype(int)
+    roh = [y[art == a].var() / y[art == a].mean() for a in range(4)]
+    assert roh[:3] == pytest.approx([4.21, 1.34, 1.00], abs=0.05) and roh[3] == pytest.approx(18.43, abs=0.5)
+    assert roh[1] > 1.0 and roh[2] > 0.95                                      # roh nicht unter Poisson
+    phi_art = [float(np.sum((y[art == a] - inf.fit.mu[art == a]) ** 2 / inf.fit.mu[art == a]) / np.sum(art == a)) for a in range(4)]
+    assert phi_art[1] < 0.5 and phi_art[2] < 0.5
+
+
+def test_b7_vehicle_parameters_in_the_readme_equal_the_generator():
+    """README, Messwelt 2: Median m und Streuung s je Art, Kundeneffekt-Faktoren f und die zwölf Effekte u_k (auf drei Stellen) stehen im Text und stimmen mit `zae_generator` überein."""
+    import zae_generator as G
+    readme = (Path(__file__).resolve().parent.parent / "README.md").read_text(encoding="utf-8")
+    for part in ("m = 3,5 · exp(0,7 · Zoll + 0,30 · Wochenende), s = 0,55", "m = 0,6 + 0,85 · Vorlauf, s = 0,25", "m = 0,3 + 0,8 · Vorlauf, s = 0,35", "m = 7 · exp(0,30 · Wochenende), s = 0,90",
+                 "Import 1, Export 0,3, Umschlag 0,3, Leer 1", "Zollhalt (nur bei Import, Wahrscheinlichkeit 0,25)", "Wochenende (Wahrscheinlichkeit 2/7)", "von 1 bis 10", "von 0,5 bis 6"):
+        assert part in readme, part
+    assert ", ".join(f"{u:.3f}".replace(".", ",").replace("-", "−") for u in C.UK) in readme
+    assert C.S_BASE == (0.55, 0.25, 0.35, 0.90) and C.U_SCALE == (1.0, 0.3, 0.3, 1.0) and C.P_ZOLL == 0.25 and C.K_KUNDEN == 12 and C.ART_P == (0.35, 0.30, 0.25, 0.10)
+    for kunde in (0, 3, 11):
+        for we in (0, 1):
+            for vor in (1.0, 6.0):
+                for zoll in (0, 1):
+                    erwartet = [np.log(3.5 * np.exp(0.7 * zoll + 0.30 * we)), np.log(0.6 + 0.85 * vor), np.log(0.3 + 0.8 * vor), np.log(7.0 * np.exp(0.30 * we))]
+                    for art in range(4):
+                        mu, s = G.log_median_and_s(np.array([art]), np.array([kunde]), np.array([zoll]), np.array([we]), np.array([vor]))
+                        assert mu[0] == pytest.approx(erwartet[art] + C.UK[kunde] * C.U_SCALE[art], abs=1e-12) and s[0] == C.S_BASE[art]
+    n = 200_000
+    X, d = G.make_history(n, 11)
+    art, kunde, zoll, we, vor, gew = X[:, 0].astype(int), X[:, 1].astype(int), X[:, 2], X[:, 3], X[:, 4], X[:, 5]
+    assert zoll[art != 0].sum() == 0 and zoll[art == 0].mean() == pytest.approx(0.25, abs=0.01)
+    assert we.mean() == pytest.approx(2 / 7, abs=0.005)
+    assert vor[art == 1].min() >= 1.0 and vor[art == 1].max() <= 10.0 and vor[art == 2].min() >= 0.5 and vor[art == 2].max() <= 6.0 and vor[(art == 0) | (art == 3)].max() == 0.0
+    assert abs(gew.mean()) < 0.02 and gew.std() == pytest.approx(1.0, abs=0.02)
+    assert np.abs(np.bincount(kunde, minlength=12) / n - 1 / 12).max() < 0.005
+
+
+def test_b7_numbers_hold_without_customers_at_3000_and_differ_at_300():
+    """README B12: die Zahlen gelten ohne Kundenspalten und bei n = 3000; bei n = 300 (ohne Kunden) deckt HC0 beim Zoll 92,3 %, der Fehlalarm liegt bei Quasi z bei 12,7 %, bei NB2 bei 8,8 % (unter 10 %)."""
+    c = ev.veh_cell(F, 300, False)["spalten"]
+    assert c["Zoll"]["HC0"]["coverage"] == pytest.approx(0.923, abs=0.03)
+    g = c["Gewicht (Rauschmerkmal)"]
+    assert g["Quasi z"]["fehlalarm"] == pytest.approx(0.127, abs=0.03) and g["NB2"]["fehlalarm"] == pytest.approx(0.088, abs=0.03) and g["NB2"]["fehlalarm"] < 0.10
 
 
 def test_b7_pseudo_true_coefficients_are_stable_across_two_seeds():

@@ -89,7 +89,7 @@ def test_cover_verdict_with_overdispersion_names_numbers_limit_and_interpretatio
     kind, text = ev.verdict_cover(_cell(cov, R=20000, se_mc=0.002), limit, "NB2", 0.5, 200)
     assert kind == "warning"
     for part in ("NB2-Welt, α = 0,50, n = 200, 20000 Wiederholungen", "Monte-Carlo-Standardfehler 0,2 Prozentpunkte", "Poisson 74,1 %", "Quasi-Poisson (z) 92,2 %", "Sandwich HC0 93,0 %", "HC3-Analogon 93,7 %", "NB2 94,5 %",
-                 "Poisson 74,2 %, Quasi-Poisson 92,5 %", "Deutung aus der Formel, nicht eigens gemessen", "unter 90 %: Poisson (naiv)"):
+                 "Poisson 74,2 %, Quasi-Poisson (z) 92,5 %", "Deutung aus der Formel, nicht eigens gemessen", "unter 90 %: Poisson (naiv)"):
         assert part in text, part
     assert "Ausnahme im selben Satz" not in text                          # nur bei n = 30
 
@@ -103,7 +103,7 @@ def test_cover_verdict_nb1_world_names_the_exact_limit():
 def test_cover_verdict_small_sample_exception_only_when_hc0_is_below_quasi():
     limit = {"cov_poisson": 0.74, "cov_quasi": 0.92}
     kind, text = ev.verdict_cover(_cell([0.78, 0.92, 0.93, 0.88, 0.89, 0.928, 0.929]), limit, "NB2", 0.5, 30)
-    assert "bei n = 30 liegt das Sandwich HC0 mit 88,0 % unter Quasi-Poisson, die Hebelkorrektur (HC3-Analogon) hebt es auf 92,8 %" in text
+    assert "bei n = 30 liegt das Sandwich HC0 mit 88,0 % unter Quasi-Poisson (z), die Hebelkorrektur (HC3-Analogon) hebt es auf 92,8 %" in text
     kind, text = ev.verdict_cover(_cell([0.78, 0.92, 0.93, 0.93, 0.93, 0.93, 0.929]), limit, "NB2", 0.5, 30)
     assert "Ausnahme im selben Satz" not in text
 
@@ -147,15 +147,15 @@ def _frozen_vehicle():
 def test_vehicle_verdict_for_a_real_column_names_coverage_ratio_and_target():
     kind, text = ev.verdict_vehicle(_frozen_vehicle(), 3000, False, "Zoll")
     assert kind == "warning"
-    for part in ("n = 3000 Container, 300 Wiederholungen (vorgerechnet), ohne Kunden im Modell, Pearson-φ̂ im Mittel 3,04", "Zoll: Poisson 69,7 %, Quasi-Poisson 91,3 %, NB2 88,0 %, Sandwich HC0 95,7 % Überdeckung",
-                 "Monte-Carlo-Standardfehler 1,3 Prozentpunkte", "Poisson 0,52, Quasi 0,91, HC0 1,04, NB2 0,80", "Grenzwert des jeweiligen Schätzers (n = 1 Million)", "nicht exakt log-linear"):
+    for part in ("n = 3000 Container, 300 Wiederholungen (vorgerechnet), ohne Kunden im Modell, Pearson-φ̂ im Mittel 3,04", "Zoll: Poisson 69,7 %, Quasi-Poisson (z) 91,3 %, NB2 88,0 %, Sandwich HC0 95,7 % Überdeckung",
+                 "Monte-Carlo-Standardfehler 1,3 Prozentpunkte", "Poisson 0,52, Quasi (z) 0,91, HC0 1,04, NB2 0,80", "Grenzwert des jeweiligen Schätzers (n = 1 Million)", "nicht exakt log-linear"):
         assert part in text, part
 
 
 def test_vehicle_verdict_for_the_noise_feature_reports_false_alarms():
     kind, text = ev.verdict_vehicle(_frozen_vehicle(), 3000, False, "Gewicht (Rauschmerkmal)")
     assert kind == "warning"
-    assert "schlägt bei Poisson in 32,3 %, Quasi-Poisson 11,7 %, NB2 9,7 % und Sandwich HC0 4,3 %" in text and "nominal 5 %" in text
+    assert "schlägt bei Poisson in 32,3 %, Quasi-Poisson (z) 11,7 %, NB2 9,7 % und Sandwich HC0 4,3 %" in text and "nominal 5 %" in text
 
 
 def test_vehicle_verdict_threshold_of_the_warning_for_the_noise_feature_is_10_percent():
@@ -174,7 +174,7 @@ def test_vehicle_verdict_with_customers_says_so():
 def test_dispersion_verdict_counts_underdispersed_kinds():
     kind, text = ev.verdict_dispersion(_frozen_vehicle())
     assert kind == "info"
-    for part in ("Mittel 6,16", "Varianz 43,41", "Varianz geteilt durch Mittel 7,05", "Pearson-φ̂ 3,23", "Import 3,02, Export 0,44, Umschlag 0,44, Leer 19,16", "in 2 von 4 Arten (Export, Umschlag)", "auf 2,54"):
+    for part in ("Mittel 6,16", "Varianz 43,41", "Varianz geteilt durch Mittel 7,05 (roh über alle Container zusammen; das ist nicht die Überdispersion gegenüber dem Modell", "Pearson-φ̂ 3,23 (bei Poisson 1)", "Import 3,02, Export 0,44, Umschlag 0,44, Leer 19,16", "in 2 von 4 Arten (Export, Umschlag) ist die Streuung gegen das angepasste Mittel kleiner als Poisson", "auf 2,54"):
         assert part in text, part
 
 
@@ -199,7 +199,7 @@ def test_two_worlds_verdict_threshold_is_two_standard_errors_strict():
     assert "NB2 liegt vorn" in ev.verdict_two_worlds(c2, c1, 0.5, 200)[1]
     c1["coverage"]["Quasi z"] = c1["coverage"]["NB2"] + 2.01 * se
     t = ev.verdict_two_worlds(c2, c1, 0.5, 200)[1]
-    assert "Quasi-Poisson liegt vorn" in t and "Kein Verfahren ist in beiden Welten das beste." in t
+    assert "Quasi-Poisson (z) liegt vorn" in t and "Kein Verfahren ist in beiden Welten das beste." in t
 
 
 def test_two_worlds_verdict_without_overdispersion():

@@ -45,7 +45,7 @@ def test_each_non_default_preset_changes_exactly_the_documented_controls():
 def test_alpha_and_n_values_of_the_presets_match_their_names():
     assert C.PRESETS["Keine Überstreuung (α = 0)"]["alpha"] == 0.0 and C.PRESETS["Starke Überstreuung (α = 1)"]["alpha"] == 1.0
     assert C.PRESETS["Kleine Stichprobe (n = 30)"]["n"] == 30 and C.PRESETS["Falsches Mittelwertmodell"]["c"] == 0.2
-    assert C.PRESETS["Standtage der Container"]["spalte"].startswith("Gewicht") and C.PRESETS["Von Hand (8 Standtage)"]["h"] == (0, 0, 1, 5, 1, 3, 6, 10)
+    assert C.PRESETS["Standtage der Container"]["spalte"].startswith("Gewicht") and C.PRESETS["Von Hand (8 Zählwerte)"]["h"] == (0, 0, 1, 5, 1, 3, 6, 10)
 
 
 def test_setting_specs_cover_every_control_key_of_the_app():
