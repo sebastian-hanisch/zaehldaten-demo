@@ -272,8 +272,8 @@ def verdict_missspec(frozen: dict, c: float) -> tuple[str, str]:
                        f"Bei n = 200 ({dist['R']} Wiederholungen) liegt der Unterschied β̂₁(NB2) − β̂₁(Poisson) im Median bei {de(dist['diff_median'], 2)} (Quartile {de(dist['diff_q1'], 2)} und {de(dist['diff_q3'], 2)}) "
                        f"bei einer robusten Streuung von β̂₁(Poisson) von {de(dist['poisson_robust_sd'], 2)}; in {dist['diff_gross']} von {dist['R']} Datensätzen ist der Betrag des Unterschieds größer als 1 "
                        f"(Mittel und Standardabweichung des Unterschieds nennt die App nicht: einzelne Ausreißer dominieren sie). Quasi-Poisson hat dieselben Koeffizienten wie Poisson, NB2 nicht."
-                       + (" Ab c = 0,25 hat μ² keinen endlichen Erwartungswert (das Integral von exp(2c x²) gegen die Normaldichte divergiert): der Grenzwert des Poisson-Schätzers hängt dann stark vom Datensatz ab, "
-                          "und die Zahl für c = 0,3 ist nur eine Größenordnung." if c >= 0.25 else ""))
+                       + (" Ab c = 0,25 hat μ² keinen endlichen Erwartungswert (das Integral von exp(2c x²) gegen die Normaldichte divergiert): die Schätzung des Poisson-Anstiegs konvergiert dann nicht mit der üblichen Rate, "
+                          "und einzelne Datensätze weichen stark ab; der Grenzwert selbst existiert (0,4/(1 − 2c), bei c = 0,3 gleich 1,000)." if c >= 0.25 else ""))
 
 
 # --- Experiment 5: Nullen und fehlende Merkmale -------------------------------------------------------------------------------------------------

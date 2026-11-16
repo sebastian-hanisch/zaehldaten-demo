@@ -6,6 +6,7 @@ gerechnet ist (tests/test_hand.py). Die schweren Messreihen stehen vorgerechnet 
 Zähleinheit: Wiederholung = ein Datensatz bzw. eine Historie aus n Containern; Ziel der Intervalle im Container-Vehikel ist der Grenzwert des jeweiligen Schätzers."""
 
 import math
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -145,6 +146,19 @@ def test_b5_nb2_estimate_has_outlier_datasets_at_alpha_1_n_30():
     assert c["sd_est"]["NB2"] > 10 and c["sd_est"]["Poisson"] < 0.5
 
 
+def test_b5_nb2_degenerate_replicate():
+    """Die Standardabweichung 79,6 (NB2, α = 1, n = 30, 4000 Wiederholungen) gibt im Wesentlichen einen einzigen Datensatz wieder: Wiederholung 3480 hat die Randlösung α̂ ≈ 403 und β̂₁ ≈ 5035 (Abbruchregel für α̂); 5035/√4000 ≈ 79,6."""
+    import zae_models as MOD
+    import zae_rng as RNG
+    import zae_sample as SMP
+    c = cell("NB2", 1.0, 30)
+    assert c["R"] == 4000 and c["seed"] == 8110
+    X, y, _ = SMP.draw_world(RNG.rep_seed(c["seed"], 3480), 30, "NB2", 1.0)
+    fit = MOD.nb2_fit(X, y)
+    assert fit.at_boundary and fit.alpha > 100 and 1000 < abs(fit.beta[1]) < 20000
+    assert c["sd_est"]["NB2"] == pytest.approx(abs(fit.beta[1]) / math.sqrt(c["R"]), rel=0.05)
+
+
 def test_b5_boundary_solutions_for_alpha_zero():
     """α = 0, n = 200: α̂ liegt in 2253 von 4000 Datensätzen am Rand (Randlösung, Band ± 5 %), bei α = 0,5 in keinem; keine Anpassung scheiterte."""
     c = cell("NB2", 0.0, 200)
@@ -164,6 +178,30 @@ def test_b6_quasi_and_poisson_share_coefficients_but_nb2_differs_under_misspecif
     assert lim[0.3]["nb2"] == pytest.approx(0.461, abs=0.04)
     assert 0.75 < lim[0.3]["poisson"] < 1.25                       # nicht stabil: μ² hat für c ≥ 0,25 keinen endlichen Erwartungswert (frühere Messung mit 10⁶: 1,04)
     assert all(lim[c]["poisson"] > lim[c]["nb2"] for c in (0.1, 0.2, 0.3))
+
+
+def test_b6_poisson_limit_closed_form():
+    """Grenzwert des Poisson-Anstiegs bei wahrem log μ = 1 + 0,4 x + c x², x ~ N(0, 1): aus E[μ] = E[exp(b0 + b1 x)] und E[x μ] = E[x exp(b0 + b1 x)] folgt b1 = 0,4/(1 − 2c); er existiert auch bei c = 0,3 (= 1,0).
+    Gegenprobe: die Schätzgleichungen per Quadratur lösen (scipy) und die vorgerechneten Messwerte vergleichen."""
+    from scipy import integrate, optimize
+
+    def gleichungen(par, c):
+        b0, b1 = par
+        dichte = lambda x: math.exp(1 + 0.4 * x + (c - 0.5) * x * x) / math.sqrt(2 * math.pi)        # μ(x)·φ(x) in einem Exponenten (kein Überlauf)
+        m0 = integrate.quad(dichte, -60, 60, limit=200)[0]
+        m1 = integrate.quad(lambda x: x * dichte(x), -60, 60, limit=200)[0]
+        e = math.exp(b0 + b1 * b1 / 2)
+        return [m0 - e, m1 - b1 * e]
+
+    lim = {e["c"]: e for e in F["missspec"]["limit"]}
+    for c, tol in ((0.0, 0.02), (0.1, 0.03), (0.2, 0.06), (0.3, 0.1)):
+        b1 = optimize.fsolve(gleichungen, [1.0, 0.4], args=(c,), xtol=1e-12)[1]
+        assert b1 == pytest.approx(0.4 / (1 - 2 * c), abs=1e-6)
+        if c < 0.3:
+            assert lim[c]["poisson"] == pytest.approx(b1, abs=tol)
+    assert abs(lim[0.3]["poisson"] - 1.0) < 0.1                                    # beide Messungen (0,970 und 1,038) liegen nahe 1,000
+    readme = (Path(__file__).resolve().parent.parent / "README.md").read_text(encoding="utf-8")
+    assert "0,4/(1 − 2c)" in readme and "1,000 bei c = 0,3" in readme
 
 
 def test_b6_n_200_distribution_of_the_difference():
