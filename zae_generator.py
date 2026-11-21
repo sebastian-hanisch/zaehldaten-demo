@@ -1,7 +1,7 @@
 """Container-Vehikel: Merkmale und Verweilzeit eines Containers, daraus die Standtage (begonnene Tage = aufgerundete Verweilzeit).
 
 Nachbau (nicht bitgleich) des Merkmalsmodells der Nachbar-Demo `verweilzeit-demo` (dort `vwz_generator.py`, `draw_features` und `log_median_and_s`; nur gelesen, keine
-Ereignissimulation, keine Stapelplanung): Art (Import 35 %, Export 30 %, Umschlag 25 %, Leer 10 %), Kunde (zwölf Effekte als feste Konstanten), Zollhalt bei Import, Wochenende,
+Ereignisdiskrete Simulation, keine Stapelplanung): Art (Import 35 %, Export 30 %, Umschlag 25 %, Leer 10 %), Kunde (zwölf Effekte als feste Konstanten), Zollhalt bei Import, Wochenende,
 Vorlauf bei Export und Umschlag, Rauschmerkmal Gewicht (Wirkung null). Die log-Verweilzeit ist normal mit je Art anderer Streuung. Alle Zufallszahlen aus SplitMix64
 (`zae_rng`), darum gelten die Zahlen dieser Demo und nicht die der Nachbar-Demo (anderer Zufallsstrom). Alle Parameter sind erfunden, kein Echtdatenbezug."""
 
