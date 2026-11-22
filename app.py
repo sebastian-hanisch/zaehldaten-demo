@@ -1,7 +1,7 @@
 """Zählen: Poisson, Überdispersion und die Frage, welcher Standardfehler stimmt - interaktive Konzept-Demo
 Sebastian Hanisch - Operations Research und Machine Learning
 
-Standtage der Container als Zählausgang: Poisson nimmt Varianz = Mittel an, die Standtage streuen aber insgesamt um ein Vielfaches mehr (gegen das angepasste Modell gemessen etwa
+Standtage der Container als Zählvariable: Poisson nimmt Varianz = Mittel an, die Standtage streuen aber insgesamt um ein Vielfaches mehr (gegen das angepasste Modell gemessen etwa
 dreimal so stark, bei Export und Umschlag dagegen weniger). Die Demo misst, wie schmal die Intervalle des
 Poisson-Modells dadurch werden, was Quasi-Poisson, negativ binomiales Modell und Sandwich-Verfahren daran ändern, und wo sie selbst an Grenzen stoßen.
 
@@ -205,7 +205,7 @@ st.caption(
 )
 rc = st.columns(3)
 rc[0].selectbox("Welt der Streuung", C.WELT_CHOICES, key="welt", format_func=lambda w: C.WELT_LABELS[w], help="NB2: Varianz μ + αμ². NB1: Varianz (1 + δ) μ mit gleicher mittlerer Dispersion wie NB2 bei demselben α.")
-rc[1].select_slider("Überstreuung α", options=C.ALPHA_CHOICES, key="alpha", help="α = 0: Poisson. α = 1: Varianz μ + μ².")
+rc[1].select_slider("Überdispersion α", options=C.ALPHA_CHOICES, key="alpha", help="α = 0: Poisson. α = 1: Varianz μ + μ².")
 rc[2].select_slider("Beobachtungen n je Datensatz", options=C.N_CHOICES, key="n")
 
 live = None
@@ -283,7 +283,7 @@ st.markdown("---")
 # --- Experiment 5 ----------------------------------------------------------------------------------------------------------------------------------------
 
 st.subheader("0️⃣ Experiment 5: Nullen und fehlende Merkmale")
-st.radio("Zählausgang", C.AUSGANG_CHOICES, key="ausgang", horizontal=True, help="Standgeld-Tage: Annahme dieser Messung, Standgeld fällig ab dem 8. Tag, also max(0, Standtage − 7).")
+st.radio("Zählvariable", C.AUSGANG_CHOICES, key="ausgang", horizontal=True, help="Standgeld-Tage: Annahme dieser Messung, Standgeld fällig ab dem 8. Tag, also max(0, Standtage − 7).")
 st.plotly_chart(V.build_zeros(frozen, False), width="stretch", key="zero_chart")
 _show(ev.verdict_zeros(frozen, S_["ausgang"]))
 

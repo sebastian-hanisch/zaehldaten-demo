@@ -72,6 +72,6 @@ PRESET_HELP = {
     "Keine Überstreuung (α = 0)": "Die Zählwerte sind genau Poisson-verteilt: Varianz gleich Mittel. Alle Verfahren sollten die Intervalle halten; die Demo meldet hier keinen Effekt.",
     "Starke Überstreuung (α = 1)": "Die Varianz wächst quadratisch mit dem Mittel (μ + μ²). Das Poisson-Intervall unterdeckt am stärksten.",
     "Standtage der Container": "Das Container-Vehikel mit n = 3000 Containern, Auswahl: das Rauschmerkmal Gewicht (wahre Wirkung null). Gemessen wird, wie oft ein Merkmal ohne Wirkung anschlägt.",
-    "Kleine Stichprobe (n = 30)": "Dieselbe Überstreuung (α = 0,5) bei nur 30 Beobachtungen: das Sandwich HC0 unterdeckt hier, die Hebelkorrektur hebt es.",
+    "Kleine Stichprobe (n = 30)": "Dieselbe Überdispersion (α = 0,5) bei nur 30 Beobachtungen: das Sandwich HC0 unterdeckt hier, die Hebelkorrektur hebt es.",
     "Falsches Mittelwertmodell": "Die Wahrheit hat einen Krümmungsterm (c = 0,2), das Modell nur den Anstieg: Poisson und NB2 schätzen dann verschiedene Größen.",
 }
